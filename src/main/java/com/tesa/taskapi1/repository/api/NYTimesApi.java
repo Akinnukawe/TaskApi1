@@ -1,11 +1,14 @@
 package com.tesa.taskapi1.repository.api;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.tesa.taskapi1.model.request.ObjectPostRequest;
 import com.tesa.taskapi1.model.response.*;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 import org.springframework.stereotype.Service;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 @Service
 public class NYTimesApi {
@@ -243,6 +246,108 @@ public class NYTimesApi {
             System.out.println(ex.getMessage());
 
             return new ReadBestSellersListByDateResponse("106", ex.getMessage(), new BestSellersListByDateResponse());
+
+        }
+    }
+
+    public ReadObjectPostResponse postObject(ObjectPostRequest createPostrequest)
+    {
+        //step 1: initialise http client
+        //get http client
+        var client = new OkHttpClient();
+
+        //for converting gson
+        var gson = new Gson();
+
+        //hard code list
+        var endpoint = "https://api.restful-api.dev/objects";
+
+        // Build URL with query parameters
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder();
+        var builtUrl = urlBuilder.build();
+
+        // Convert request class to JSON
+        String jsonBody = gson.toJson(createPostrequest);
+
+        // Create request body
+        var body = RequestBody.create(
+                jsonBody,
+                MediaType.parse("application/json; charset=utf-8")
+        );
+
+        // Create request
+        var request = new Request.Builder()
+                .url(builtUrl)
+                .post(body)
+                .build();
+
+        try
+        {
+            var apiResponse = client.newCall(request).execute();
+            if(apiResponse.isSuccessful())
+            {
+                String responseBody = apiResponse.body().string();
+                var apiCreatePostResponse = gson.fromJson(responseBody, ObjectPostResponse.class);
+
+                return new ReadObjectPostResponse("00","completed",apiCreatePostResponse);
+            }
+
+            return new ReadObjectPostResponse("106",apiResponse.message(),new ObjectPostResponse());
+        }
+        catch(Exception ex)
+        {
+
+            System.out.println(">> EXCEPTION ");
+            System.out.println(ex.getMessage());
+
+            return new ReadObjectPostResponse("106",ex.getMessage(),new ObjectPostResponse());
+
+        }
+    }
+
+    public ReadCountryListResponse getCountryList(String region, String country) {
+        //step 1: initialise http client
+        //get http client
+        var client = new OkHttpClient();
+
+        //for converting gson
+        var gson = new Gson();
+
+        //hard code list
+        var endpoint = "http://universities.hipolabs.com/search";
+
+        // Build URL with query parameters
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(endpoint).newBuilder();
+
+        urlBuilder.addQueryParameter("name", region);
+        urlBuilder.addQueryParameter("country", country);
+
+
+        var builtUrl = urlBuilder.build();
+
+        // Create request
+        var request = new Request.Builder()
+                .url(builtUrl)
+                .build();
+
+        try {
+            var apiResponse = client.newCall(request).execute();
+            if (apiResponse.isSuccessful()) {
+                String responseBody = apiResponse.body().string();
+
+                Type listType = new TypeToken<ArrayList<CountryListResponse>>() {}.getType();
+                ArrayList<CountryListResponse> countryListResponse = gson.fromJson(responseBody, listType);
+
+                return new ReadCountryListResponse("00", "completed", countryListResponse);
+            }
+
+            return new ReadCountryListResponse("106", apiResponse.message(), new ArrayList<CountryListResponse>());
+        } catch (Exception ex) {
+
+            System.out.println(">> EXCEPTION ");
+            System.out.println(ex.getMessage());
+
+            return new ReadCountryListResponse("106", ex.getMessage(), new ArrayList<CountryListResponse>());
 
         }
     }

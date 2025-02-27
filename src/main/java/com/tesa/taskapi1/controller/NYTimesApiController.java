@@ -1,11 +1,13 @@
 package com.tesa.taskapi1.controller;
 
+import com.tesa.taskapi1.model.request.ObjectPostRequest;
 import com.tesa.taskapi1.model.response.*;
 import com.tesa.taskapi1.service.NYTimesApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,6 +48,18 @@ public class NYTimesApiController {
     @GetMapping("/ny-times-best-sellers-list-by-date/{date}/{list}")
     public ResponseEntity<ReadBestSellersListByDateResponse> getBestSellersListByDate(@PathVariable String date, @PathVariable String list) {
         var response = nyTimesApiService.getBestSellersListByDate(date, list);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/ny-times-post-object")
+    public ResponseEntity<ReadObjectPostResponse> postObject(@RequestBody ObjectPostRequest object) {
+        var response = nyTimesApiService.postObject(object);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/ny-times-country-list/{region}/{country}")
+    public ResponseEntity<ReadCountryListResponse> getCountryList(@PathVariable String region, @PathVariable String country) {
+        var response = nyTimesApiService.getCountryList(region, country);
         return ResponseEntity.ok(response);
     }
 }
